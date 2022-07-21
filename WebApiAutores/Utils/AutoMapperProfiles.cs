@@ -15,7 +15,7 @@ namespace WebApiAutores.Utils
             CreateMap<Book, BookDTO>();
 
             CreateMap<CommentCreationDTO, Comment>();
-            CreateMap<Comment, CommentCreationDTO>();
+            CreateMap<Comment, CommentDTO>();
         }
     }
 }

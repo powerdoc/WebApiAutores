@@ -20,8 +20,14 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpGet]
-        public async Task<List<CommentDTO>> Get(int bookId)
+        public async Task<ActionResult<List<CommentDTO>>> Get(int bookId)
         {
+            var bookExists = await context.Books.AnyAsync(x => x.Id == bookId);
+            if (!bookExists)
+            {
+                return NotFound();
+            }
+
             var comments = await context.Comments.Where(c => c.BookId == bookId).ToListAsync();
             return mapper.Map<List<CommentDTO>>(comments);
         }
