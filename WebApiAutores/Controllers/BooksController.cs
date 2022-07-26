@@ -19,11 +19,13 @@ namespace WebApiAutores.Controllers
             this.mapper = mapper;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<BookDTO>> Get(int id)
+        [HttpGet("{id:int}", Name = "GetBook")]
+        //public async Task<ActionResult<BookDTO>> Get(int id)
+        public async Task<ActionResult<BookDTOWithAuthors>> Get(int id)
         {
-            var book = await context.Books/*.Include(x => x.Comments)*/.FirstOrDefaultAsync(x => x.Id == id);
-            return mapper.Map<BookDTO>(book);
+            var book = await context.Books.Include(l => l.AuthorBooks).ThenInclude(a => a.Author).FirstOrDefaultAsync(x => x.Id == id);
+            book.AuthorBooks = book.AuthorBooks.OrderBy(x => x.Order).ToList();
+            return mapper.Map<BookDTOWithAuthors>(book);
         }
 
         [HttpPost]
@@ -35,12 +37,34 @@ namespace WebApiAutores.Controllers
             //    return BadRequest($"No existe el author del Id = {book.AuthorId}");
             //}
 
+            if (bookCreatingDTO.AuthorIds == null)
+            {
+                return BadRequest("It's not possible to create a book without authors!");
+            }
+
+            var authorIds = await context.Authors.Where(a => bookCreatingDTO.AuthorIds.Contains(a.Id)).Select(x => x.Id).ToListAsync();
+            if (bookCreatingDTO.AuthorIds.Count != authorIds.Count)
+            {
+                return BadRequest("Some of the sent authors don't exist!");
+            }
+
             var book = mapper.Map<Book>(bookCreatingDTO);
+
+            if (book.AuthorBooks != null)
+            {
+                for (int i = 0; i < book.AuthorBooks.Count; i++)
+                {
+                    book.AuthorBooks[i].Order = i;
+                }
+            }
 
             context.Add(book);
             await context.SaveChangesAsync();
-            return Ok();
+            //return Ok();
 
+            var bookDto = mapper.Map<BookDTO>(book);
+
+            return CreatedAtRoute("GetBook", new { Id = book.Id }, bookDto);
         }
 
     }

@@ -8,5 +8,7 @@ namespace WebApiAutores.DTOs
         [FirstLetterUpperCase]
         [StringLength(maximumLength: 250)]
         public string Title { get; set; }
+
+        public List<int> AuthorIds { get; set; }
     }
 }

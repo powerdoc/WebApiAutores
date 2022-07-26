@@ -25,20 +25,22 @@ namespace WebApiAutores.Controllers
         public async Task<ActionResult<List<AuthorDTO>>> Get()
         {
             var authors = await context.Authors/*.Include(x => x.Books)*/.ToListAsync();
+            //var authors = await context.Authors.Include(a => a.AuthorBooks).ThenInclude(b => b.Book).ToListAsync();
             return mapper.Map<List<AuthorDTO>>(authors);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<AuthorDTO>> Get(int id)
+        [HttpGet("{id:int}", Name = "GetAuthor")]
+        //public async Task<ActionResult<AuthorDTO>> Get(int id)
+        public async Task<ActionResult<AuthorDTOWithBooks>> Get(int id)
         {
-            var author = await context.Authors.FirstOrDefaultAsync(x => x.Id == id);
+            var author = await context.Authors.Include(a => a.AuthorBooks).ThenInclude(b => b.Book).FirstOrDefaultAsync(x => x.Id == id);
 
             if (author == null)
             {
                 return NotFound();
             }
 
-            return mapper.Map<AuthorDTO>(author);
+            return mapper.Map<AuthorDTOWithBooks>(author);
         }
 
         [HttpGet("{name}")]
@@ -64,7 +66,12 @@ namespace WebApiAutores.Controllers
 
             context.Add(author);
             await context.SaveChangesAsync();
-            return Ok();
+
+            //return Ok();
+
+            var autorDTO = mapper.Map<AuthorDTO>(author);
+
+            return CreatedAtRoute("GetAuthor", new { id = author.Id }, autorDTO);
         }
 
         [HttpPut("{id:int}")] // api/authors/1
