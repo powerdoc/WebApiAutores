@@ -75,12 +75,12 @@ namespace WebApiAutores.Controllers
         }
 
         [HttpPut("{id:int}")] // api/authors/1
-        public async Task<ActionResult> Put(Author author, int id)
+        public async Task<ActionResult> Put(AuthorCreationDTO authorCreationDTO, int id)
         {
-            if (author.Id != id)
-            {
-                return BadRequest("El id del author no coincide con el id de la URL");
-            }
+            //if (author.Id != id)
+            //{
+            //    return BadRequest("El id del author no coincide con el id de la URL");
+            //}
 
             var exists = await context.Authors.AnyAsync(x => x.Id == id);
             if (!exists)
@@ -88,9 +88,13 @@ namespace WebApiAutores.Controllers
                 return NotFound();
             }
 
+            var author = mapper.Map<Author>(authorCreationDTO);
+            author.Id = id;
+
             context.Update(author);
             await context.SaveChangesAsync();
-            return Ok();
+            //return Ok();
+            return NoContent();
         }
 
         [HttpDelete("{id:int}")] // api/authors/2
