@@ -50,13 +50,14 @@ namespace WebApiAutores.Controllers
 
             var book = mapper.Map<Book>(bookCreatingDTO);
 
-            if (book.AuthorBooks != null)
-            {
-                for (int i = 0; i < book.AuthorBooks.Count; i++)
-                {
-                    book.AuthorBooks[i].Order = i;
-                }
-            }
+            //if (book.AuthorBooks != null)
+            //{
+            //    for (int i = 0; i < book.AuthorBooks.Count; i++)
+            //    {
+            //        book.AuthorBooks[i].Order = i;
+            //    }
+            //}
+            AsignAuthorsOrder(book);
 
             context.Add(book);
             await context.SaveChangesAsync();
@@ -67,5 +68,32 @@ namespace WebApiAutores.Controllers
             return CreatedAtRoute("GetBook", new { Id = book.Id }, bookDto);
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put(BookCreationDTO bookCreationDTO, int id)
+        {
+            var bookDb = await context.Books.Include(x => x.AuthorBooks).FirstOrDefaultAsync(x => x.Id == id);
+            if (bookDb == null)
+            {
+                return NotFound();
+            }
+
+            bookDb = mapper.Map(bookCreationDTO, bookDb);
+            AsignAuthorsOrder(bookDb);
+
+            await context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private void AsignAuthorsOrder(Book book)
+        {
+            if (book.AuthorBooks != null)
+            {
+                for (int i = 0; i < book.AuthorBooks.Count; i++)
+                {
+                    book.AuthorBooks[i].Order = i;
+                }
+            }
+        }
     }
 }
