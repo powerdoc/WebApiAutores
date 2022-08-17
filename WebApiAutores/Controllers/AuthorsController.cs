@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,14 +15,17 @@ namespace WebApiAutores.Controllers
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        //private readonly IConfiguration configuration;
 
-        public AuthorsController(ApplicationDbContext context, IMapper mapper)
+        public AuthorsController(ApplicationDbContext context, IMapper mapper/*, IConfiguration configuration*/)
         {
             this.context = context;
             this.mapper = mapper;
+            //this.configuration = configuration;
         }
 
         [HttpGet] //api/authors
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<List<AuthorDTO>>> Get()
         {
             var authors = await context.Authors/*.Include(x => x.Books)*/.ToListAsync();
